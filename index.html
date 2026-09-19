@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Text Converter - Free Online OCR Tool</title>
+    <meta name="description" content="Extract text from images online for free. Fast, private, and client-side image to text converter powered by OCR technology.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 py-4 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-indigo-600 tracking-tight">PicText OCR</h1>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-medium">100% Private & Client-Side</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-10">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-3">Extract Text From Any Image Instantly</h2>
+            <p class="text-slate-600 max-w-xl mx-auto">Upload an image, screenshot, or document to copy its text. Processing happens right in your browser without uploading your files anywhere.</p>
+        </div>
+
+        <!-- Drop Zone -->
+        <div id="drop-zone" class="border-2 border-dashed border-indigo-300 rounded-2xl bg-white p-8 text-center hover:border-indigo-500 transition-colors cursor-pointer shadow-sm relative mb-6">
+            <input type="file" id="file-input" accept="image/*" class="hidden">
+            <div class="flex flex-col items-center justify-center space-y-3">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-full">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <p class="text-lg font-semibold text-slate-700">Drag & Drop Your Image Here</p>
+                    <p class="text-sm text-slate-400 mt-1">or <span class="text-indigo-600 font-medium underline">browse files</span> (PNG, JPG, WEBP, etc.)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls / Options -->
+        <div id="options-panel" class="hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <label for="lang-select" class="text-sm font-medium text-slate-700">Recognition Language:</label>
+                <select id="lang-select" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 font-medium">
+                    <option value="eng" selected>English</option>
+                    <option value="tur">Turkish</option>
+                    <option value="deu">German</option>
+                    <option value="fra">French</option>
+                    <option value="spa">Spanish</option>
+                </select>
+            </div>
+            <button id="extract-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2 rounded-lg transition-colors shadow-sm">Extract Text</button>
+        </div>
+
+        <!-- Loading Progress -->
+        <div id="loading-box" class="hidden bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6 text-center">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mb-2"></div>
+            <p id="status-text" class="text-sm font-medium text-slate-700">Initializing OCR Engine...</p>
+        </div>
+
+        <!-- Output Result Box -->
+        <div id="result-box" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm mb-8 overflow-hidden">
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Extracted Text</span>
+                <div class="flex space-x-2">
+                    <button id="copy-btn" class="text-xs bg-white border border-slate-300 hover:bg-slate-100 px-3 py-1.5 rounded-md font-medium text-slate-700 transition-colors">Copy Text</button>
+                    <button id="download-btn" class="text-xs bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 px-3 py-1.5 rounded-md font-medium text-indigo-700 transition-colors">Download TXT</button>
+                </div>
+            </div>
+            <textarea id="output-text" class="w-full h-64 p-4 text-slate-800 focus:outline-none resize-y text-sm font-mono bg-white" placeholder="Extracted text will appear here..."></textarea>
+        </div>
+
+        <!-- SEO / Info Section -->
+        <section class="bg-white rounded-xl border border-slate-200 p-6 space-y-4 text-sm text-slate-600">
+            <h3 class="text-base font-semibold text-slate-900">How does online OCR work?</h3>
+            <p>Optical Character Recognition (OCR) analyzes the letters and shapes inside your images and converts them into editable digital text. PicText OCR runs entirely in your web browser using WebAssembly, ensuring maximum privacy and zero data leakage.</p>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+        <p>&copy; 2026 PicText OCR. All rights reserved.</p>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const optionsPanel = document.getElementById('options-panel');
+        const extractBtn = document.getElementById('extract-btn');
+        const loadingBox = document.getElementById('loading-box');
+        const statusText = document.getElementById('status-text');
+        const resultBox = document.getElementById('result-box');
+        const outputText = document.getElementById('output-text');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const langSelect = document.getElementById('lang-select');
+
+        let selectedImage = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-indigo-500', 'bg-indigo-50/50');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+            if (e.dataTransfer.files.length) {
+                selectedImage = e.dataTransfer.files[0];
+                optionsPanel.classList.remove('hidden');
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                selectedImage = e.target.files[0];
+                optionsPanel.classList.remove('hidden');
+            }
+        });
+
+        extractBtn.addEventListener('click', async () => {
+            if (!selectedImage) return;
+
+            loadingBox.classList.remove('hidden');
+            resultBox.classList.add('hidden');
+            statusText.textContent = 'Loading OCR language models...';
+
+            try {
+                const worker = await Tesseract.createWorker(langSelect.value);
+                statusText.textContent = 'Processing image & recognizing text...';
+                
+                const ret = await worker.recognize(selectedImage);
+                outputText.value = ret.data.text;
+
+                await worker.terminate();
+
+                loadingBox.classList.add('hidden');
+                resultBox.classList.remove('hidden');
+            } catch (err) {
+                alert('An error occurred during text extraction.');
+                loadingBox.classList.add('hidden');
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(outputText.value);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = 'Copy Text', 2000);
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const blob = new Blob([outputText.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'extracted-text.txt';
+            a.click();
+        });
+    </script>
+</body>
+</html>
